@@ -27,8 +27,7 @@ module.exports = function (options) {
   });
   var workflowChoices = [
     {name:'In progress', value: '#in-progress'},
-    {name:'Ready for review', value: '#ready'},
-    {name:'Open', value: '#open'},
+    {name:'Ready for review', value: '#ready-for-review'},
   ]
 
   return {
