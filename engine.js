@@ -25,6 +25,10 @@ module.exports = function (options) {
       value: key
     };
   });
+  var workflowChoices = [
+    {name:'In progress', value: '#in-progress'},
+    {name:'Ready for review', value: '#ready-for-qa/review'},
+  ]
 
   return {
     // When a user runs `git cz`, prompter will
@@ -57,6 +61,18 @@ module.exports = function (options) {
           default: options.defaultType
         }, {
           type: 'input',
+          name: 'issues',
+          message: 'Add comma separated JIRA issue ID(s) (e.g. "AUTH-18", "CA-001, ABC-12") (required)\n',
+          validate: function(input) {
+            if (!input) {
+              return 'Must specify issue IDs, otherwise, just use a normal commit message';
+            } else {
+              return true;
+            }
+          },
+          default: options.defaultIssues
+        }, {
+          type: 'input',
           name: 'scope',
           message: 'What is the scope of this change (e.g. component or file name)? (press enter to skip)\n',
           default: options.defaultScope
@@ -65,6 +81,16 @@ module.exports = function (options) {
           name: 'subject',
           message: 'Write a short, imperative tense description of the change:\n',
           default: options.defaultSubject
+        }, {
+          type: 'list',
+          name: 'workflow',
+          message: 'Select the issue status this commit results in:\n',
+          choices: workflowChoices,
+          default: options.defaultWorkflow
+        }, {
+          type: 'input',
+          name: 'time',
+          message: 'Time spent (i.e. 3h 15m) (optional):\n',
         }, {
           type: 'input',
           name: 'body',
@@ -82,21 +108,22 @@ module.exports = function (options) {
           when: function(answers) {
             return answers.isBreaking;
           }
-        }, {
-          type: 'confirm',
-          name: 'isIssueAffected',
-          message: 'Does this change affect any open issues?',
-          default: options.defaultIssues ? true : false
-        }, {
-          type: 'input',
-          name: 'issues',
-          message: 'Add issue references (e.g. "fix #123", "re #123".):\n',
-          when: function(answers) {
-            return answers.isIssueAffected;
-          },
-          default: options.defaultIssues ? options.defaultIssues : undefined
+        // }, {
+        //   type: 'confirm',
+        //   name: 'isIssueAffected',
+        //   message: 'Does this change affect any open issues?',
+        //   default: options.defaultIssues ? true : false
+        // }, {
+        //   type: 'input',
+        //   name: 'issues',
+        //   message: 'Add issue references (e.g. "fix #123", "re #123".):\n',
+        //   when: function(answers) {
+        //     return answers.isIssueAffected;
+        //   },
+        //   default: options.defaultIssues ? options.defaultIssues : undefined
         }
       ]).then(function(answers) {
+        // console.log('answers', answers)
 
         var maxLineWidth = 100;
 
@@ -112,8 +139,13 @@ module.exports = function (options) {
         scope = scope ? '(' + answers.scope.trim() + ')' : '';
 
         // Hard limit this line
-        var head = (answers.type + scope + ': ' + answers.subject.trim()).slice(0, maxLineWidth);
-
+        var head = (answers.type + scope + ': ' + answers.subject.trim())
+        head += ' ' + answers.issues.trim().toUpperCase()
+        head += ' ' + answers.workflow
+        if(answers.time && answers.time.length){
+          head += ' #time ' + answers.time
+        }
+        head = head.slice(0, maxLineWidth);
         // Wrap these lines at 100 characters
         var body = wrap(answers.body, wrapOptions);
 
@@ -122,9 +154,10 @@ module.exports = function (options) {
         breaking = breaking ? 'BREAKING CHANGE: ' + breaking.replace(/^BREAKING CHANGE: /, '') : '';
         breaking = wrap(breaking, wrapOptions);
 
-        var issues = answers.issues ? wrap(answers.issues, wrapOptions) : '';
+        // var issues = answers.issues ? wrap(answers.issues, wrapOptions) : '';
 
-        var footer = filter([ breaking, issues ]).join('\n\n');
+        var footer = filter([ breaking ]).join('\n\n');
+        // var footer = filter([ breaking, issues ]).join('\n\n');
 
         commit(head + '\n\n' + body + '\n\n' + footer);
       });
