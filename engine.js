@@ -108,19 +108,6 @@ module.exports = function (options) {
           when: function(answers) {
             return answers.isBreaking;
           }
-        // }, {
-        //   type: 'confirm',
-        //   name: 'isIssueAffected',
-        //   message: 'Does this change affect any open issues?',
-        //   default: options.defaultIssues ? true : false
-        // }, {
-        //   type: 'input',
-        //   name: 'issues',
-        //   message: 'Add issue references (e.g. "fix #123", "re #123".):\n',
-        //   when: function(answers) {
-        //     return answers.isIssueAffected;
-        //   },
-        //   default: options.defaultIssues ? options.defaultIssues : undefined
         }
       ]).then(function(answers) {
         // console.log('answers', answers)
@@ -154,10 +141,8 @@ module.exports = function (options) {
         breaking = breaking ? 'BREAKING CHANGE: ' + breaking.replace(/^BREAKING CHANGE: /, '') : '';
         breaking = wrap(breaking, wrapOptions);
 
-        // var issues = answers.issues ? wrap(answers.issues, wrapOptions) : '';
 
         var footer = filter([ breaking ]).join('\n\n');
-        // var footer = filter([ breaking, issues ]).join('\n\n');
 
         commit(head + '\n\n' + body + '\n\n' + footer);
       });
