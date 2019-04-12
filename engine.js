@@ -74,7 +74,7 @@ module.exports = function (options) {
         }, {
           type: 'input',
           name: 'scope',
-          message: 'What is the scope of this change (e.g. component or file name)? (press enter to skip)\n',
+          message: 'What is the scope of this change (e.g. component or file name)? (press enter to skip):\n',
           default: options.defaultScope
         }, {
           type: 'input',
